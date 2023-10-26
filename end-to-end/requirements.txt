@@ -1,0 +1,4 @@
+pydub
+rich
+tqdm
+transformers
