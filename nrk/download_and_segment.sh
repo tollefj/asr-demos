@@ -24,7 +24,6 @@ fi
 if [ ! -f "$cleaned_out" ]; then
     mv "$input_file" "$cleaned_inp"
     ffmpeg -i "$cleaned_inp" -vn -acodec libmp3lame -ar 16000 -q:a 2 "$cleaned_out"
-    echo "Audio extracted and saved as: $cleaned_out"
 fi
 
 if [ ! -d "segments" ]; then
