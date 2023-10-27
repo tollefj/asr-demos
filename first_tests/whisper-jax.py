@@ -94,8 +94,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Transcribe audio files with Jax Whisper"
     )
-    parser.add_argument("model", type=str, help="Model to use")
-    parser.add_argument("out_dir", type=str, help="Path to output directory")
+    parser.add_argument("--model", type=str, help="Model to use", default="NbAiLab/nb-whisper-small-beta")
+    parser.add_argument("-o", "--out_dir", type=str, help="Path to output directory")
     parser.add_argument(
         "-m",
         "--transcribe_many",
