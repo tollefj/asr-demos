@@ -1,6 +1,0 @@
-# git+https://github.com/sanchit-gandhi/whisper-jax.git
-# cached-property
-librosa
-numba
-numpy
-webrtcvad

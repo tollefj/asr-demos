@@ -15,7 +15,7 @@ fi
 URL="$1"
 input_file=$(youtube-dl --get-filename "$URL")
 cleaned=$(echo $input_file | cut -c 1-18 | tr -cd '[:alnum:]')
-cleaned_inp="$cleaned.mp4"
+cleaned_inp="../data/media/$cleaned.mp4"
 cleaned_out="$cleaned.mp3"
 if [ ! -f "$cleaned_inp" ]; then
     youtube-dl "$URL"
@@ -26,9 +26,6 @@ if [ ! -f "$cleaned_out" ]; then
     ffmpeg -i "$cleaned_inp" -vn -acodec libmp3lame -ar 16000 -q:a 2 "$cleaned_out"
 fi
 
-if [ ! -d "segments" ]; then
-    mkdir "segments"
-fi
-mkdir "segments/$cleaned"
+mkdir "../data/segments/$cleaned"
 # Split the audio into 30-second segments
-ffmpeg -i "$cleaned_out" -f segment -segment_time 30 -c copy "segments/$cleaned/out%03d.mp3"
+ffmpeg -i "$cleaned_out" -f segment -segment_time 30 -c copy "../data/segments/$cleaned/out%03d.mp3"

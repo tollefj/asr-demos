@@ -1,3 +1,5 @@
 jsonlines
 autofaiss
 sentence-transformers
+opencv-python-headless
+python-vlc
