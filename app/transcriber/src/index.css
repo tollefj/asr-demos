@@ -1,0 +1,90 @@
+body {
+  margin: 0;
+  background-color: #000;
+}
+.App {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; 
+  align-items: flex-start;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.App-header {
+  width: 100%;
+  color: white;
+  text-align: center;
+  padding-bottom: 1em;
+}
+
+/* nice looking a-tags */
+a {
+  color: #00aef3;
+  text-decoration: none;
+  padding-left: .5em;
+}
+
+hr {
+  width: 100%;
+  border: 2px solid white;
+}
+
+/* Styles for the video container (on the left) */
+.video-container {
+  flex: 7; /* Allocate 70% of available space to the video container */
+  margin-right: 10px; /* Add some spacing between the video and search/history */
+  position: relative;
+}
+
+video {
+  width: 100%;
+}
+
+button {
+  background: #bbb;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+#subtitle {
+  width: 100%;
+  background: rgba(0, 0, 0, 1);
+  color: #fff;
+  padding: 10px;
+  margin-top: -10px;
+  text-align: center;
+  font-size: 26px;
+  pointer-events: none; /* Disable pointer events for subtitles, as previously mentioned */
+}
+
+/* Styles for the search/history container (on the right) */
+.search-history-container {
+  flex: 3; /* Allocate 30% of available space to the search/history container */
+  display: flex;
+  color: white;
+  flex-direction: column;
+}
+
+.search-history {
+  text-align: left;
+  margin: 2px;
+}
+/* special formatting for the <p> element in search-history */
+.search-history p {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  cursor: pointer;
+  /* line at the bottom */
+
+}
+
+
+input, button {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+}
