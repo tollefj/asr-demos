@@ -1,13 +1,12 @@
 body {
   margin: 0;
-  background-color: #000;
+  background-color: #555;
 }
 .App {
   width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between; 
-  align-items: flex-start;
   margin: 0 auto;
   padding: 20px;
 }
@@ -15,11 +14,31 @@ body {
 .App-header {
   width: 100%;
   color: white;
-  text-align: center;
+  text-align: left;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
   padding-bottom: 1em;
 }
 
-/* nice looking a-tags */
+#header-right {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}
+
+select {
+  background: #fff;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
 a {
   color: #00aef3;
   text-decoration: none;
