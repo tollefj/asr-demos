@@ -1,7 +1,7 @@
 FROM nvidia/cuda:11.4.3-cudnn8-devel-ubuntu20.04
 
 RUN apt update
-RUN apt install -y git git-lfs python3-pip
+RUN apt install -y git git-lfs python3-pip cmake
 RUN git lfs install
 
 # Specific for running with username in Loke, repos and other shall be placed in your home
@@ -12,6 +12,7 @@ RUN mkdir /home/$username && chown -R $UID:$UID /home/$username
 
 # These packages are manually selected from the repo requirements
 RUN pip install pyannote.audio pydub rich tqdm transformers librosa numba numpy webrtcvad
+RUN pip install flask flask_cors
 #RUN pip install numpy pandas matplotlib scikit-learn torch==1.11.0 pytorch_lightning==1.9 wandb seaborn optuna accelerate mycolorpy
 
 # Define the default User all commands will be run as within any
