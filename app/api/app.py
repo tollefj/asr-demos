@@ -34,11 +34,14 @@ class DataStore:
 
     # a function to retrieve the corresponding subtitle from a current timestamp (start)
     # the df has the following columns: start, end, text
-    def get_subtitle(self, timestamp):
+    def get_subtitle(self, timestamp, buffer=1):
         if self.df is None:
             return None
-        for _, row in self.df.iterrows():
-            if row["start"] <= timestamp and timestamp <= row["end"]:
+        for i, row in self.df.iterrows():
+            if row["start"] - buffer <= timestamp and timestamp <= row["end"]:
+                delta = abs(timestamp - row["start"])
+                if delta > 10 or i >= len(self.df):
+                    return None
                 return row["text"]
         
     def query(self, q, k=1):

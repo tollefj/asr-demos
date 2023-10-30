@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  background-color: #555;
+  background-color: #000;
 }
 .App {
   width: 100%;
@@ -18,9 +18,14 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
+  padding: 10px;
 
   padding-bottom: 1em;
+  justify-content: space-between;
+}
+
+#header-left {
+  text-align: left;
 }
 
 #header-right {
@@ -62,7 +67,7 @@ video {
 }
 
 button {
-  background: #bbb;
+  background: #777;
   border: none;
   cursor: pointer;
   margin-bottom: 10px;

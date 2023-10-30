@@ -7,23 +7,29 @@ const HOST = "localhost"
 const PORT = "8080"
 const URL = `http://${HOST}:${PORT}`
 
-// UI element to show 4 available TV programs to choose from, based on a list of IDs.
-// It should be a select element with 4 options, with only text
+const programMap = {
+  "NorgeRundtDef": "Norge Rundt - De Frivillige",
+  "Debatten12okt": "Debatten - 12. oktober",
+  "Debatten19okt": "Debatten - 19. oktober",
+  "6899tilegdør": "Kjartan Lauritzen - 6899 til eg dør"
+}
 const TVProgramSelector = ({ tvPrograms, onChange }) => {
   return (
     <select onChange={onChange} defaultValue="">
       <option value="" disabled>Select TV program</option>
       {tvPrograms.map((tvProgram, index) => (
-        <option key={index} value={tvProgram}>{tvProgram.replace(".jsonl", "")}</option>
+        <option key={index} value={tvProgram}>{programMap[tvProgram.replace(".jsonl", "")]}</option>
       ))}
     </select>
   );
 }
 
+
 function App() {
   const videoRef = useRef(null);
   const [query, setQuery] = useState('');
   const [currentTimestamp, setCurrentTimestamp] = useState(0);
+  const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(0);
   const [history, setHistory] = useState([]);
   const [validTranscriptions, setValidTranscriptions] = useState([]);
   const [selectedTranscription, setSelectedTranscription] = useState(null);
@@ -46,13 +52,17 @@ function App() {
     const updateSubtitle = async () => {
       const video = videoRef.current;
       const currentTime = video.currentTime;
-      if (currentTime - currentTimestamp > 0.3) {
+      if (Math.abs(currentTime - currentTimestamp) > 1) {
         const res = await post(
           `${URL}/subtitle`,
           JSON.stringify({ timestamp: currentTime }))
         console.log(res)
         setCurrentTimestamp(currentTime);
         setCurrentSubtitle(res)
+        // ensure that each subtitle is shown for at least 2 seconds
+        // if (Math.abs(currentTime - lastUpdatedTimestamp) > 2) {
+        //   setLastUpdatedTimestamp(currentTime);
+        // }
       }
     };
     const video = videoRef.current;
@@ -85,21 +95,31 @@ function App() {
       `${URL}/search`,
       JSON.stringify({ text: query, k }))
 
-    const timeStr = res.map(timestamp => {
-      return `${parseFloat(timestamp["start"]).toFixed(2)}-->${parseFloat(timestamp["end"]).toFixed(2)}`
-    });
+    // const timeStr = res.map(timestamp => {
+    //   return `${parseFloat(timestamp["start"]).toFixed(2)}-->${parseFloat(timestamp["end"]).toFixed(2)}`
+    // });
 
+    const timestamp = res[0]
+
+    const start = timestamp["start"]
+    videoRef.current.currentTime = start;
+    videoRef.current.play();
+
+    const timeStr = `${parseFloat(timestamp["start"]).toFixed(2)}-->${parseFloat(timestamp["end"]).toFixed(2)}`
     const historyString = `${query} (${timeStr})`
-    setHistory([historyString, ...history])
-
-    for (const timestamp of res) {
-      const start = timestamp["start"]
-      const end = timestamp["end"] + 1.5
-      const duration = end - start
-      videoRef.current.currentTime = start;
-      videoRef.current.play();
-      await new Promise(resolve => setTimeout(resolve, 1000 * duration));
+    // add history if the element does not exist
+    if (!history.includes(historyString)) {
+      setHistory([historyString, ...history])
     }
+
+    // for (const timestamp of res) {
+    //   const start = timestamp["start"]
+    //   const end = timestamp["end"] + 1.5
+    //   const duration = end - start
+    //   videoRef.current.currentTime = start;
+    //   videoRef.current.play();
+    //   await new Promise(resolve => setTimeout(resolve, 1000 * duration));
+    // }
   };
 
   const handleHistoryClick = (historyString) => {
@@ -107,7 +127,7 @@ function App() {
 
     if (timestamps) {
       const [start, end] = timestamps[0].split("-->");
-      videoRef.current.currentTime = parseFloat(start) * 1000;
+      videoRef.current.currentTime = parseFloat(start);
       videoRef.current.play();
     }
   }
@@ -118,8 +138,8 @@ function App() {
     <div className="App">
       <header className="App-header">
         <div id="header-left">
-          <h1>Interact with TV programs</h1>
-          <h5>a SCRIBE demo at NorwAI</h5>
+          <h1>Automatiske undertekster og semantisk søk i TV-programmer</h1>
+          <h5>SCRIBE demo @NorwAI</h5>
         </div>
         <div id="header-right">
           <img width={128} src={require("./assets/qr_scribe.png")} alt="QR code" />
@@ -134,7 +154,7 @@ function App() {
         <div className="video-container">
           {(videoPath && ready) ? (
             <>
-              <video ref={videoRef} src={videoPath} type="video/mp4" controls />
+              <video ref={videoRef} src={videoPath} type="video/mp4" controls autoPlay />
               <div id="subtitle">
                 {currentSubtitle && <p>{currentSubtitle.text}</p>}
               </div>
@@ -146,21 +166,27 @@ function App() {
           )}
         </div>
         <div className="search-history-container">
-          <form onSubmit={searchVideos}>
-            <input type="text" value={query} onChange={handleQueryChange} required />
-            <button type="submit" disabled={!query}>Transcription search</button>
-          </form>
-          <div className="search-history">
-            {history.map((item, index) => (
-              <div key={index} className="search-history-item" onClick={() => handleHistoryClick(item)}>
-                <p>{item}</p>
-                <hr />
-              </div>
-            ))}
-          </div>
           <div className="file-selector">
             <TVProgramSelector tvPrograms={validTranscriptions} onChange={handleTvShowSelect} />
           </div>
+          {ready && (
+            <>
+              <form onSubmit={searchVideos}>
+                <input type="text" value={query} onChange={handleQueryChange} required />
+                {query && (
+                  <button type="submit" disabled={!query}>Transcription search</button>
+                )}
+              </form>
+              <div className="search-history">
+                {history.map((item, index) => (
+                  <div key={index} className="search-history-item" onClick={() => handleHistoryClick(item)}>
+                    <p>{item}</p>
+                    <hr />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
