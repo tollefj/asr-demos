@@ -34,7 +34,7 @@ function App() {
   const [validTranscriptions, setValidTranscriptions] = useState([]);
   const [selectedTranscription, setSelectedTranscription] = useState(null);
   const [currentSubtitle, setCurrentSubtitle] = useState("");
-  const [k, setK] = useState(3);
+  const [k, setK] = useState(1);
   const [ready, setReady] = useState(false);
 
   // fetch valid transcriptions from /transcriptions get endpoint
@@ -100,10 +100,9 @@ function App() {
     // });
 
     const timestamp = res[0]
-
-    const start = timestamp["start"]
-    videoRef.current.currentTime = start;
-    videoRef.current.play();
+    // const start = timestamp["start"]
+    // videoRef.current.currentTime = start;
+    // videoRef.current.play();
 
     const timeStr = `${parseFloat(timestamp["start"]).toFixed(2)}-->${parseFloat(timestamp["end"]).toFixed(2)}`
     const historyString = `${query} (${timeStr})`
@@ -112,14 +111,14 @@ function App() {
       setHistory([historyString, ...history])
     }
 
-    // for (const timestamp of res) {
-    //   const start = timestamp["start"]
-    //   const end = timestamp["end"] + 1.5
-    //   const duration = end - start
-    //   videoRef.current.currentTime = start;
-    //   videoRef.current.play();
-    //   await new Promise(resolve => setTimeout(resolve, 1000 * duration));
-    // }
+    for (const ts of res) {
+      const start = ts["start"]
+      const end = ts["end"] + 0.5
+      const duration = end - start
+      videoRef.current.currentTime = start;
+      videoRef.current.play();
+      await new Promise(resolve => setTimeout(resolve, 1000 * duration));
+    }
   };
 
   const handleHistoryClick = (historyString) => {
