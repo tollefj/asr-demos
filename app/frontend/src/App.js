@@ -99,14 +99,10 @@ function App() {
     //   return `${parseFloat(timestamp["start"]).toFixed(2)}-->${parseFloat(timestamp["end"]).toFixed(2)}`
     // });
 
-    const timestamp = res[0]
-
-    const start = timestamp["start"]
-    videoRef.current.currentTime = start;
+    const timestamp = res[0]["time"]
+    videoRef.current.currentTime = timestamp;
     videoRef.current.play();
-
-    const timeStr = `${parseFloat(timestamp["start"]).toFixed(2)}-->${parseFloat(timestamp["end"]).toFixed(2)}`
-    const historyString = `${query} (${timeStr})`
+    const historyString = `${query} (${timestamp}sec.)`
     // add history if the element does not exist
     if (!history.includes(historyString)) {
       setHistory([historyString, ...history])
@@ -123,16 +119,16 @@ function App() {
   };
 
   const handleHistoryClick = (historyString) => {
-    const timestamps = historyString.match(/\d+\.\d+-->\d+\.\d+/g);
-
-    if (timestamps) {
-      const [start, end] = timestamps[0].split("-->");
-      videoRef.current.currentTime = parseFloat(start);
+    // from     const historyString = `${query} (${timestamp})`
+    // extract the timestamp as a float:
+    const timestamp = parseFloat(historyString.split("(")[1].split("sec.)")[0])
+    if (timestamp) {
+      videoRef.current.currentTime = timestamp;
       videoRef.current.play();
     }
   }
 
-  const videoPath = selectedTranscription ? require(`./assets/${selectedTranscription.replace(".jsonl", ".mp4")}`) : null;
+  const videoPath = selectedTranscription ? require(`./assets/${selectedTranscription}.mp4`) : null;
 
   return (
     <div className="App">
@@ -174,9 +170,12 @@ function App() {
           {ready && (
             <>
               <form onSubmit={searchVideos}>
-                <input type="text" value={query} onChange={handleQueryChange} required />
+                <input type="text" value={query} onChange={handleQueryChange} required placeholder="Tekst for semantisk søk, f.eks 'holdninger til vaksine'" />
                 {query && (
-                  <button type="submit" disabled={!query}>Transcription search</button>
+                  <>
+                    <h5 style={{ color: "white" }}>Søk</h5>
+                    <button type="submit" disabled={!query}>Transcription search</button>
+                  </>
                 )}
               </form>
               <div className="search-history">

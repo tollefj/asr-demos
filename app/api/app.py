@@ -5,6 +5,7 @@ import pandas as pd
 import faiss
 from sentence_transformers import SentenceTransformer
 from create_index import get_index_and_data
+import numpy as np
 
 app = flask.Flask(__name__)
 CORS(app)
@@ -27,45 +28,60 @@ class DataStore:
 
         self.data_folder = "../data/transcriptions/"
         self.valid_transcriptions = [
-            f for f in os.listdir(self.data_folder) if f.endswith(".jsonl")
+            f.split(".")[0] for f in os.listdir(self.data_folder) if f.endswith(".jsonl")
         ]
 
     @staticmethod
     def transform_speaker(speaker_str):
         return int(speaker_str.split("_")[2])
     
-    def update(self, jsonl_path):
-        path = os.path.join(self.data_folder, jsonl_path)
-        self.index, self.df = get_index_and_data(self.model, path)
+    def update(self, tv_show):
+        self.index, self.df = get_index_and_data(self.model, tv_show)
         
-        speaker_path = jsonl_path.replace(".jsonl", ".csv")
-        df = pd.read_csv(f"../data/diarized/{speaker_path}", header=None)
-        df.columns = ["start", "end", "speaker"]
-        df["speaker"] = df["speaker"].apply(self.transform_speaker)
-        self.speaker_df = df
-
-
     # a function to retrieve the corresponding subtitle from a current timestamp (start)
     # the df has the following columns: start, end, text
-    def get_subtitle(self, timestamp, buffer=1):
+    def get_subtitle(self, timestamp, buffer=2):
         if self.df is None:
             return None
-        for i, row in self.df.iterrows():
-            if row["start"] - buffer <= timestamp and timestamp <= row["end"]:
-                delta = abs(timestamp - row["start"])
-                if delta > 10 or i >= len(self.df):
-                    return None
-                return row["text"]
+        
+        # round timestamp to nearest 0.5 second
+        timestamp = round(timestamp * 2) / 2
+        # we cannot guarantee that the timestamp exists
+        # but select the nearest timestamp within a buffer of 2 seconds
+        if timestamp not in self.df["time"].values:
+            # find the nearest timestamp
+            timestamp = self.df["time"].values[
+                np.argmin(np.abs(self.df["time"].values - timestamp))
+            ]
+
+        current_row = self.df[self.df["time"] == timestamp]
+        speaker = current_row["speaker"].values[0]
+        text = current_row["text"].values[0]
+        # text = (speaker) text
+        # if speaker != -1:
+        return f"({speaker}) {text}"
+        # return text
+        
+        # for i, row in self.df.iterrows():
+        #     if row["start"] - buffer <= timestamp and timestamp <= row["end"]:
+        #         delta = abs(timestamp - row["start"])
+        #         if delta > 10 or i >= len(self.df):
+        #             return None
+        #         return row["text"]
         
     def query(self, q, k=1):
         emb = self.model.encode([q], show_progress_bar=False)
-        _, matches = self.index.search(emb, k)
+        idxs, matches = self.index.search(emb, k)
+        print(idxs)
+        print(matches)
+        # print top 4 matches
+        for match in matches[0]:
+            print(self.df.iloc[match]["time"])
+            print(self.df.iloc[match]["text"])
+        
         res = self.df.iloc[matches[0]]
         return [
-            {
-                "start": row["start"],
-                "end": row["end"]
-            }
+            {"time": row["time"]}
             for _, row in res.iterrows()
         ]
 
@@ -77,8 +93,8 @@ def health_check() -> str:
 
 @app.route('/update', methods=['POST'])
 def update() -> flask.Response:
-    jsonl_path = flask.request.json.get('path')
-    datastore.update(jsonl_path)
+    tv_show = flask.request.json.get('path')
+    datastore.update(tv_show)
     return flask.jsonify({"status": "ok"})
 
 @app.route('/transcriptions')
