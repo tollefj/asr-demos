@@ -34,7 +34,7 @@ function App() {
   const [validTranscriptions, setValidTranscriptions] = useState([]);
   const [selectedTranscription, setSelectedTranscription] = useState(null);
   const [currentSubtitle, setCurrentSubtitle] = useState("");
-  const [k, setK] = useState(3);
+  const [k, setK] = useState(1);
   const [ready, setReady] = useState(false);
 
   // fetch valid transcriptions from /transcriptions get endpoint
@@ -100,22 +100,19 @@ function App() {
     // });
 
     const timestamp = res[0]["time"]
-    videoRef.current.currentTime = timestamp;
-    videoRef.current.play();
+    // videoRef.current.currentTime = timestamp;
+    // videoRef.current.play();
     const historyString = `${query} (${timestamp}sec.)`
     // add history if the element does not exist
     if (!history.includes(historyString)) {
       setHistory([historyString, ...history])
     }
 
-    // for (const timestamp of res) {
-    //   const start = timestamp["start"]
-    //   const end = timestamp["end"] + 1.5
-    //   const duration = end - start
-    //   videoRef.current.currentTime = start;
-    //   videoRef.current.play();
-    //   await new Promise(resolve => setTimeout(resolve, 1000 * duration));
-    // }
+    for (const tt of res) {
+      videoRef.current.currentTime = tt["time"];
+      videoRef.current.play();
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
   };
 
   const handleHistoryClick = (historyString) => {
@@ -175,6 +172,10 @@ function App() {
                   <>
                     <h5 style={{ color: "white" }}>Søk</h5>
                     <button type="submit" disabled={!query}>Transcription search</button>
+                    {/* show k value */}
+                    <p style={{ color: "white" }}>Antall treff: {k}</p>
+                    {/* slider to select k */}
+                    <input type="range" min="1" max="10" value={k} onChange={(e) => setK(parseInt(e.target.value))} />
                   </>
                 )}
               </form>

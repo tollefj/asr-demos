@@ -1,6 +1,7 @@
 import jsonlines
 import argparse
 import re
+from tqdm import tqdm
 
 import pandas as pd
 import numpy as np
@@ -16,56 +17,34 @@ def rnd(num):
 def get_df(tv_show):
     base_path = "../data"
     speaker_path = f"{base_path}/diarized/{tv_show}.csv"
-    transcr_path = f"{base_path}/transcriptions/{tv_show}.jsonl"
+
+    def rnd(num):
+        return round(num * 2) / 2
 
     df = pd.read_csv(speaker_path, header=None)
     df.columns = ["start", "end", "speaker"]
+    # keep only start and speaker. rename start to "time"
+    df = df[["start", "speaker"]]
+    df = df.rename(columns={"start": "time"})
+    df["time"] = df["time"].apply(rnd)
+
     def transform_speaker(speaker_str):
         return int(speaker_str.split("_")[2])
+
     df["speaker"] = df["speaker"].apply(transform_speaker)
 
-    # round to nearest 0.5 seconds
-    max_time = rnd(df.iloc[-1]["end"])
-
-    # create a time series from 0 to max_time
-    series = pd.Series(np.arange(0, max_time + 0.5, 0.5))
-    series
-
-    new_df = pd.DataFrame()
-    new_df["time"] = series
-
-    # DIARIZATION
-    # for each speaker, find the time series indices that fall within the speaker's start-end time frame
-    df_as_obj = df.to_dict(orient="records")
-    for speaker in df_as_obj:
-        speaker_id = speaker["speaker"]
-        start = rnd(speaker["start"])
-        end = rnd(speaker["end"])
-        new_df[speaker_id] = new_df["time"].apply(lambda x: 1 if x >= start and x <= end else 0)
-
-    # convert from detailed view to a single speaker col, -1 if there's no speaker
-    new_df["speaker"] = -1
-    for index, row in new_df.iterrows():
-        for speaker_id in df["speaker"].unique():
-            if row[speaker_id] == 1:
-                new_df.at[index, "speaker"] = speaker_id
-    new_df = new_df[["time", "speaker"]]
-
     # TRANSCRIPTIONS
+    transcr_path = f"{base_path}/transcriptions/{tv_show}.jsonl"
     parsed = []
     with jsonlines.open(transcr_path) as reader:
         for obj in reader:
             timestamp = obj["timestamp"]
             txt = obj["text"]
             start, end = timestamp
-            parsed.append({"start": start, "end": end, "text": txt})
+            parsed.append({"time": rnd(start), "text": txt})
+
     transcript_df = pd.DataFrame(parsed)
     transcript_df["text"] = transcript_df["text"].apply(lambda x: x.strip())
-    # replace nan with max_end
-    transcript_df["end"] = transcript_df["end"].fillna(max_time)
-    # round all times to 0.5
-    transcript_df["start"] = transcript_df["start"].apply(rnd)
-    transcript_df["end"] = transcript_df["end"].apply(rnd)
 
     pattern = re.compile(r"\d+(?:,\d+)+")
     def filter_start(sent):
@@ -74,39 +53,15 @@ def get_df(tv_show):
 
     transcript_df["text"] = transcript_df["text"].apply(filter_start)
 
-    # expand the start-end to 0.5 second intervals
+
     for index, row in transcript_df.iterrows():
-        start = row["start"]
-        end = row["end"]
+        time = row["time"]
         text = row["text"]
-        for i in np.arange(start, end, 0.5):
-            new_df.loc[new_df["time"] == i, "text"] = text
-    new_df.fillna("", inplace=True)
+        closest = df.iloc[(df["time"]-time).abs().argsort()[:1]]
+        closest_speaker = closest["speaker"].values[0]
+        transcript_df.at[index, "speaker"] = closest_speaker
 
-    # create a mapping from text -> speaker
-    text_to_speaker = {}
-    for index, row in new_df.iterrows():
-        speaker = row["speaker"]
-        text = row["text"]
-
-        if speaker == -1 or text == "":
-            continue
-        if text not in text_to_speaker:
-            text_to_speaker[text] = {}
-        if speaker not in text_to_speaker[text]:
-            text_to_speaker[text][speaker] = 0
-        text_to_speaker[text][speaker] += 1
-
-    text_to_speaker = {k: max(v, key=v.get)
-                    for k, v in sorted(text_to_speaker.items(),
-                                        key=lambda item: sum(item[1].values()), reverse=True)}
-
-    new_df["speaker"] = new_df["text"].apply(
-        lambda x: text_to_speaker[x] if x in text_to_speaker else -1)
-    
-    new_df.drop_duplicates(subset="text", inplace=True)
-
-    return new_df
+    return transcript_df
 
 
 def get_index_and_data(model, tv_show) -> Tuple[Index, pd.DataFrame]:
@@ -125,7 +80,20 @@ def get_index_and_data(model, tv_show) -> Tuple[Index, pd.DataFrame]:
     df = get_df(tv_show)
     print("Encoding data")
     texts = list(set(df["text"].tolist()))
-    embeddings = model.encode(texts, show_progress_bar=True)
+    embs = model.encode(texts, show_progress_bar=True)
+    
+    # create a mapping between text and embeddings
+    text_to_emb = {}
+    for text, emb in zip(texts, embs):
+        text_to_emb[text] = emb
+    text_to_emb[""] = model.encode([""])[0]
+
+    embeddings = []
+    for index, row in df.iterrows():
+        text = row["text"]
+        embeddings.append(text_to_emb[text])
+    embeddings = np.array(embeddings).astype("float32")
+    
     print("Building index")
     index, _ = build_index(embeddings, save_on_disk=False, verbose=0)
     print("Success")
