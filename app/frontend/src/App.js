@@ -16,7 +16,7 @@ const programMap = {
 const TVProgramSelector = ({ tvPrograms, onChange }) => {
   return (
     <select onChange={onChange} defaultValue="">
-      <option value="" disabled>Select TV program</option>
+      <option value="" disabled>Velg et program</option>
       {tvPrograms.map((tvProgram, index) => (
         <option key={index} value={tvProgram}>{programMap[tvProgram.replace(".jsonl", "")]}</option>
       ))}
@@ -152,16 +152,18 @@ function App() {
         "justifyContent": "space-between",
       }}>
         <div className="video-container">
-          {(videoPath && ready) ? (
+          {(!ready && !selectedTranscription) && (
+            <h2 style={{ color: "lightgray" }}>Velg et program fra listen:</h2>
+          )}
+          {(!ready && selectedTranscription) && (
+            <h2 style={{ color: "lightgray" }}>Laster inn programmet...</h2>
+          )}
+          {ready && (
             <>
               <video ref={videoRef} src={videoPath} type="video/mp4" controls autoPlay />
               <div id="subtitle">
                 {currentSubtitle && <p>{currentSubtitle.text}</p>}
               </div>
-            </>
-          ) : (
-            <>
-              <h2>Waiting for transcription backend...</h2>
             </>
           )}
         </div>

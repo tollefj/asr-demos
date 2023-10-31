@@ -16,21 +16,34 @@ SERVER_PORT = 8080
 
 app.config['CORS_HEADERS'] = 'Content-Type'
 
+
 class DataStore:
     def __init__(self):
         print(f"Loading s-bert model")
         self.model = SentenceTransformer("NbAiLab/nb-sbert-base")
         self.index: faiss.Index = None
         self.df: pd.DataFrame = None
+        self.speaker_df: pd.DataFrame = None
 
         self.data_folder = "../data/transcriptions/"
         self.valid_transcriptions = [
             f for f in os.listdir(self.data_folder) if f.endswith(".jsonl")
         ]
 
+    @staticmethod
+    def transform_speaker(speaker_str):
+        return int(speaker_str.split("_")[2])
+    
     def update(self, jsonl_path):
         path = os.path.join(self.data_folder, jsonl_path)
         self.index, self.df = get_index_and_data(self.model, path)
+        
+        speaker_path = jsonl_path.replace(".jsonl", ".csv")
+        df = pd.read_csv(f"../data/diarized/{speaker_path}", header=None)
+        df.columns = ["start", "end", "speaker"]
+        df["speaker"] = df["speaker"].apply(self.transform_speaker)
+        self.speaker_df = df
+
 
     # a function to retrieve the corresponding subtitle from a current timestamp (start)
     # the df has the following columns: start, end, text
