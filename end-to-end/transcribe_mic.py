@@ -56,7 +56,7 @@ if __name__ == "__main__":
     recording = True
     with open(args.output, "w", encoding="utf-8") as srt_file:
         while recording:
-            print("SNAKK NÅKKA - si 'stopp' for å avbryte")
+            print("Snakk!!! (si 'stopp' for å avbryte)")
             record(seconds=args.seconds)
             print("transkriberer")
             audio = AudioSegment.from_file(wave_file)

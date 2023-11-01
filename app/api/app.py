@@ -18,10 +18,14 @@ SERVER_PORT = 8080
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 
+SBERT_MODEL = "NbAiLab/nb-sbert-base"
+# SBERT_MODEL = "intfloat/multilingual-e5-base"
+
+
 class DataStore:
     def __init__(self):
         print(f"Loading s-bert model")
-        self.model = SentenceTransformer("NbAiLab/nb-sbert-base")
+        self.model = SentenceTransformer(SBERT_MODEL)
         self.index: faiss.Index = None
         self.df: pd.DataFrame = None
         self.speaker_df: pd.DataFrame = None

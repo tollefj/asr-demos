@@ -16,7 +16,7 @@ const programMap = {
 const TVProgramSelector = ({ tvPrograms, onChange }) => {
   return (
     <select onChange={onChange} defaultValue="">
-      <option value="" disabled>Velg et program</option>
+      <option value="" disabled>Programmer</option>
       {tvPrograms.map((tvProgram, index) => (
         <option key={index} value={tvProgram}>{programMap[tvProgram.replace(".jsonl", "")]}</option>
       ))}
@@ -132,7 +132,7 @@ function App() {
       <header className="App-header">
         <div id="header-left">
           <h1>Automatiske undertekster og semantisk søk i TV-programmer</h1>
-          <h5>SCRIBE demo @NorwAI</h5>
+          <h3>SCRIBE demo @NorwAI</h3>
         </div>
         <div id="header-right">
           <img width={128} src={require("./assets/qr_scribe.png")} alt="QR code" />
@@ -146,26 +146,28 @@ function App() {
       }}>
         <div className="video-container">
           {(!ready && !selectedTranscription) && (
-            <h2 style={{ color: "lightgray" }}>Velg et program fra listen:</h2>
+            <h2 style={{ color: "lightgray" }}>Velg et program fra listen --></h2>
           )}
           {(!ready && selectedTranscription) && (
             <h2 style={{ color: "lightgray" }}>Laster inn programmet...</h2>
           )}
           {ready && (
-            <>
+            <div id="video-and-sub">
               <video ref={videoRef} src={videoPath} type="video/mp4" controls autoPlay />
               <div id="subtitle">
                 {currentSubtitle && <p>{currentSubtitle.text}</p>}
               </div>
-            </>
+            </div>
           )}
         </div>
         <div className="search-history-container">
           <div className="file-selector">
+            <h4>Velg et program:</h4>
             <TVProgramSelector tvPrograms={validTranscriptions} onChange={handleTvShowSelect} />
           </div>
           {ready && (
             <>
+              <h4>Semanitsk søk:</h4>
               <form onSubmit={searchVideos}>
                 <input type="text" value={query} onChange={handleQueryChange} required placeholder="Tekst for semantisk søk, f.eks 'holdninger til vaksine'" />
                 {query && (
