@@ -60,7 +60,7 @@ if __name__ == "__main__":
             record(seconds=args.seconds)
             print("transkriberer")
             audio = AudioSegment.from_file(wave_file)
-            kwargs = {"task": "transcribe", "language": "no"}
+            kwargs = {"task": "transcribe", "language": "en"}
             res = asr(wave_file, generate_kwargs=kwargs, return_timestamps=True)
             chunks = res["chunks"]
             timestamps = [c["timestamp"] for c in chunks]

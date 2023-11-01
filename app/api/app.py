@@ -5,6 +5,11 @@ import pandas as pd
 import faiss
 from sentence_transformers import SentenceTransformer
 from create_index import get_index_and_data
+<<<<<<< Updated upstream
+=======
+import numpy as np
+from transcriber import WhisperTranscriber
+>>>>>>> Stashed changes
 
 app = flask.Flask(__name__)
 CORS(app)
@@ -15,6 +20,22 @@ SERVER_HOST = "0.0.0.0"
 SERVER_PORT = 8080
 
 app.config['CORS_HEADERS'] = 'Content-Type'
+
+
+SBERT_MODEL = "NbAiLab/nb-sbert-base"
+# SBERT_MODEL = "intfloat/multilingual-e5-base"
+WHISPER_MODEL = "NbAiLab/nb-whisper-small-beta"
+
+def download(url):
+    print(f"Downloading {url}"")
+    cmd = "download_and_segment.sh"
+    subprocess.run([cmd, url], check=True)
+    out_dir = "../data/transcriptionsV2/"
+    print(f"Transcribing {url} to {out_dir}"")
+    transcriber = WhisperTranscriber(model=WHISPER_MODEL, out_dir=out_dir, audio_file=url)
+
+
+
 
 class DataStore:
     def __init__(self):
@@ -43,6 +64,10 @@ class DataStore:
                 if delta > 10 or i >= len(self.df):
                     return None
                 return row["text"]
+        
+    def download(self, url):
+        cmd = "download_and_segment.sh"
+        subprocess.run([cmd, url], check=True)
         
     def query(self, q, k=1):
         emb = self.model.encode([q], show_progress_bar=False)

@@ -1,4 +1,5 @@
 1
+<<<<<<< Updated upstream
 00:00:00,000 --> 00:00:10,010
 Ordfører, per tiden jobbes det med langtidsmeldinga for Forsvaret.
 2
@@ -22,3 +23,25 @@ I den forbindelse er det hovedargumentet for å prøve å etablere det.
 8
 00:00:55,055 --> 00:01:00,060
 Jeg vet at det har vært møte med forsvarsministeren i Nordland Høyre,
+=======
+00:00:00,000 --> 00:00:03,003
+How can we regulate something we have now?
+2
+00:00:04,004 --> 00:00:07,007
+They can and do manipulator with this date.
+3
+00:00:07,007 --> 00:00:09,009
+They call in to make purchases.
+4
+00:00:10,010 --> 00:00:15,015
+to spend more time on social media platforms, with their traditional outcome.
+5
+00:00:15,015 --> 00:00:19,019
+Stela Kroppstad has highlighted
+6
+00:00:20,020 --> 00:00:24,024
+young girls searched for Facebook and introduced the &quot.
+7
+00:00:24,024 --> 00:00:29,029
+And social media became more provocative.
+>>>>>>> Stashed changes

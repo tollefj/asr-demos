@@ -5,8 +5,8 @@ import jax.numpy as jnp
 from whisper_jax import FlaxWhisperPipline
 
 class WhisperTranscriber:
-    def __init__(self, model, out_dir, audio_file, language="no", batch_size=None, timestamps=True):
-        self.model = model
+    def __init__(self, pipeline, out_dir, audio_file, language="no", batch_size=None, timestamps=True):
+        self.pipeline = pipeline
         self.out_dir = out_dir
         self.audio_file = audio_file
         self.language = language
@@ -15,12 +15,7 @@ class WhisperTranscriber:
         self.process()
 
     def process(self):
-        print(f"Loading model {self.model}")
-        pipeline = FlaxWhisperPipline(self.model, dtype=jnp.bfloat16, batch_size=self.batch_size)
-
-        print(f"Transcribing {self.audio_file}")
         transcript = pipeline(self.audio_file, task="transcribe", language=self.language, return_timestamps=self.timestamps)
-
         try:
             assert isinstance(transcript, dict) and ["text", "chunks"] == list(transcript.keys())
         except AssertionError:
