@@ -16,7 +16,7 @@ const programMap = {
 const TVProgramSelector = ({ tvPrograms, onChange }) => {
   return (
     <select onChange={onChange} defaultValue="">
-      <option value="" disabled>Select TV program</option>
+      <option value="" disabled>Programmer</option>
       {tvPrograms.map((tvProgram, index) => (
         <option key={index} value={tvProgram}>{programMap[tvProgram.replace(".jsonl", "")]}</option>
       ))}
@@ -99,46 +99,40 @@ function App() {
     //   return `${parseFloat(timestamp["start"]).toFixed(2)}-->${parseFloat(timestamp["end"]).toFixed(2)}`
     // });
 
-    const timestamp = res[0]
-    // const start = timestamp["start"]
-    // videoRef.current.currentTime = start;
+    const timestamp = res[0]["time"]
+    // videoRef.current.currentTime = timestamp;
     // videoRef.current.play();
-
-    const timeStr = `${parseFloat(timestamp["start"]).toFixed(2)}-->${parseFloat(timestamp["end"]).toFixed(2)}`
-    const historyString = `${query} (${timeStr})`
+    const historyString = `${query} (${timestamp}sec.)`
     // add history if the element does not exist
     if (!history.includes(historyString)) {
       setHistory([historyString, ...history])
     }
 
-    for (const ts of res) {
-      const start = ts["start"]
-      const end = ts["end"] + 0.5
-      const duration = end - start
-      videoRef.current.currentTime = start;
+    for (const tt of res) {
+      videoRef.current.currentTime = tt["time"];
       videoRef.current.play();
-      await new Promise(resolve => setTimeout(resolve, 1000 * duration));
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
   };
 
   const handleHistoryClick = (historyString) => {
-    const timestamps = historyString.match(/\d+\.\d+-->\d+\.\d+/g);
-
-    if (timestamps) {
-      const [start, end] = timestamps[0].split("-->");
-      videoRef.current.currentTime = parseFloat(start);
+    // from     const historyString = `${query} (${timestamp})`
+    // extract the timestamp as a float:
+    const timestamp = parseFloat(historyString.split("(")[1].split("sec.)")[0])
+    if (timestamp) {
+      videoRef.current.currentTime = timestamp;
       videoRef.current.play();
     }
   }
 
-  const videoPath = selectedTranscription ? require(`./assets/${selectedTranscription.replace(".jsonl", ".mp4")}`) : null;
+  const videoPath = selectedTranscription ? require(`./assets/${selectedTranscription}.mp4`) : null;
 
   return (
     <div className="App">
       <header className="App-header">
         <div id="header-left">
           <h1>Automatiske undertekster og semantisk søk i TV-programmer</h1>
-          <h5>SCRIBE demo @NorwAI</h5>
+          <h3>SCRIBE demo @NorwAI</h3>
         </div>
         <div id="header-right">
           <img width={128} src={require("./assets/qr_scribe.png")} alt="QR code" />
@@ -151,29 +145,40 @@ function App() {
         "justifyContent": "space-between",
       }}>
         <div className="video-container">
-          {(videoPath && ready) ? (
-            <>
+          {(!ready && !selectedTranscription) && (
+            <h2 style={{ color: "lightgray" }}>Velg et program fra listen --></h2>
+          )}
+          {(!ready && selectedTranscription) && (
+            <h2 style={{ color: "lightgray" }}>Laster inn programmet...</h2>
+          )}
+          {ready && (
+            <div id="video-and-sub">
               <video ref={videoRef} src={videoPath} type="video/mp4" controls autoPlay />
               <div id="subtitle">
                 {currentSubtitle && <p>{currentSubtitle.text}</p>}
               </div>
-            </>
-          ) : (
-            <>
-              <h2>Waiting for transcription backend...</h2>
-            </>
+            </div>
           )}
         </div>
         <div className="search-history-container">
           <div className="file-selector">
+            <h4>Velg et program:</h4>
             <TVProgramSelector tvPrograms={validTranscriptions} onChange={handleTvShowSelect} />
           </div>
           {ready && (
             <>
+              <h4>Semanitsk søk:</h4>
               <form onSubmit={searchVideos}>
-                <input type="text" value={query} onChange={handleQueryChange} required />
+                <input type="text" value={query} onChange={handleQueryChange} required placeholder="Tekst for semantisk søk, f.eks 'holdninger til vaksine'" />
                 {query && (
-                  <button type="submit" disabled={!query}>Transcription search</button>
+                  <>
+                    <h5 style={{ color: "white" }}>Søk</h5>
+                    <button type="submit" disabled={!query}>Transcription search</button>
+                    {/* show k value */}
+                    <p style={{ color: "white" }}>Antall treff: {k}</p>
+                    {/* slider to select k */}
+                    <input type="range" min="1" max="10" value={k} onChange={(e) => setK(parseInt(e.target.value))} />
+                  </>
                 )}
               </form>
               <div className="search-history">

@@ -12,7 +12,6 @@ body {
 }
 
 .App-header {
-  width: 100%;
   color: white;
   text-align: left;
   display: flex;
@@ -21,11 +20,12 @@ body {
   padding: 10px;
 
   padding-bottom: 1em;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 #header-left {
-  text-align: left;
+  width: 75%;
+  padding: 5px;
 }
 
 #header-right {
@@ -55,15 +55,15 @@ hr {
   border: 2px solid white;
 }
 
-/* Styles for the video container (on the left) */
 .video-container {
   flex: 7; /* Allocate 70% of available space to the video container */
   margin-right: 10px; /* Add some spacing between the video and search/history */
   position: relative;
+  text-align: center;
 }
 
 video {
-  width: 100%;
+  width: 75%;
 }
 
 button {
@@ -73,14 +73,19 @@ button {
   margin-bottom: 10px;
 }
 
+#video-and-sub {
+  text-align: center;
+}
+
 #subtitle {
-  width: 100%;
+  /* width: 70%; */
   background: rgba(0, 0, 0, 1);
   color: #fff;
   padding: 10px;
+  padding: 10px 70px;
   margin-top: -10px;
-  text-align: center;
-  font-size: 26px;
+  /* text-align: center; */
+  font-size: 24px;
   pointer-events: none; /* Disable pointer events for subtitles, as previously mentioned */
 }
 
